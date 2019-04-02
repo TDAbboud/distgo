@@ -37,7 +37,7 @@ var (
 			if dockerBuildRepositoryFlagVal != "" {
 				docker.SetDockerRepository(projectParam, dockerBuildRepositoryFlagVal)
 			}
-			return docker.BuildProducts(projectInfo, projectParam, distgoConfigModTime(), distgo.ToProductDockerIDs(args), dockerBuildTagKeysFlagVal, dockerBuildVerboseFlagVal, dockerBuildDryRunFlagVal, cmd.OutOrStdout())
+			return docker.BuildProducts(projectInfo, projectParam, distgoConfigModTime(), distgo.ToProductDockerIDs(args), dockerBuildTagKeysFlagVal, dockerBuildVerboseFlagVal, dockerBuildDryRunFlagVal, dockerBuildParallelFlagVal, cmd.OutOrStdout())
 		},
 	}
 	dockerPushSubCmd = &cobra.Command{
@@ -57,6 +57,7 @@ var (
 )
 
 var (
+	dockerBuildParallelFlagVal   bool
 	dockerBuildRepositoryFlagVal string
 	dockerBuildVerboseFlagVal    bool
 	dockerBuildDryRunFlagVal     bool
@@ -72,6 +73,7 @@ func init() {
 	dockerBuildSubCmd.Flags().BoolVar(&dockerBuildVerboseFlagVal, "verbose", false, "print verbose output for the operation")
 	addDryRunFlag(dockerBuildSubCmd, &dockerBuildDryRunFlagVal)
 	addTagKeysFlag(dockerBuildSubCmd, &dockerBuildTagKeysFlagVal)
+	addParallelFlag(dockerBuildSubCmd, &dockerBuildParallelFlagVal)
 	dockerCmd.AddCommand(dockerBuildSubCmd)
 
 	addRepositoryFlag(dockerPushSubCmd, &dockerPushRepositoryFlagVal)
@@ -92,4 +94,8 @@ func addDryRunFlag(cmd *cobra.Command, flagVal *bool) {
 
 func addTagKeysFlag(cmd *cobra.Command, flagVal *[]string) {
 	cmd.Flags().StringSliceVar(flagVal, "tags", nil, "")
+}
+
+func addParallelFlag(cmd *cobra.Command, flagVal *bool) {
+	cmd.Flags().BoolVar(&dockerBuildParallelFlagVal, "parallel", true, "build docker images in parallel")
 }

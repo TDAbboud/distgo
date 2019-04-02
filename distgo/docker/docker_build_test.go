@@ -791,7 +791,7 @@ RUN echo 'Tags for foo: {{Tags "foo" "print-dockerfile"}}'
 		require.NoError(t, err, "Case %d: %s", i, tc.name)
 
 		buffer := &bytes.Buffer{}
-		err = docker.BuildProducts(projectInfo, projectParam, &preDistTime, nil, tc.tagKeys, false, false, buffer)
+		err = docker.BuildProducts(projectInfo, projectParam, &preDistTime, nil, tc.tagKeys, false, false, false, buffer)
 		if tc.wantErrorRegexp == "" {
 			require.NoError(t, err, "Case %d: %s", i, tc.name)
 		} else {

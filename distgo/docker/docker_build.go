@@ -35,7 +35,7 @@ import (
 	"github.com/palantir/distgo/distgo/dist"
 )
 
-func BuildProducts(projectInfo distgo.ProjectInfo, projectParam distgo.ProjectParam, configModTime *time.Time, productDockerIDs []distgo.ProductDockerID, tagKeys []string, verbose, dryRun bool, stdout io.Writer) error {
+func BuildProducts(projectInfo distgo.ProjectInfo, projectParam distgo.ProjectParam, configModTime *time.Time, productDockerIDs []distgo.ProductDockerID, tagKeys []string, verbose, dryRun, parallel bool, stdout io.Writer) error {
 	// determine products that match specified productDockerIDs
 	productParams, err := distgo.ProductParamsForDockerProductArgs(projectParam.Products, productDockerIDs...)
 	if err != nil {
@@ -58,7 +58,7 @@ func BuildProducts(projectInfo distgo.ProjectInfo, projectParam distgo.ProjectPa
 	}
 	if len(productParamsToBuild) != 0 {
 		if err := build.Run(projectInfo, productParamsToBuild, build.Options{
-			Parallel: true,
+			Parallel: parallel,
 			DryRun:   dryRun,
 		}, stdout); err != nil {
 			return err
