@@ -145,6 +145,8 @@ func Run(projectInfo distgo.ProjectInfo, productParam distgo.ProductParam, dryRu
 			}
 		}
 
+		// Here is the generate dist products call line
+		// If the product exists already it doesn't get here!
 		distgo.PrintlnOrDryRunPrintln(stdout, fmt.Sprintf("Creating distribution for %s at %v", productParam.ID, strings.Join(outputArtifactDisplayPaths(distgo.ProductDistArtifactPaths(projectInfo, productOutputInfo)[currDistID]), ", ")), dryRun)
 		if !dryRun {
 			currDistParam := productParam.Dist.DistParams[currDistID]
@@ -165,6 +167,8 @@ func Run(projectInfo distgo.ProjectInfo, productParam distgo.ProductParam, dryRu
 			if err := distgo.WriteAndExecuteScript(projectInfo, currDistParam.Script, distgo.DistScriptEnvVariables(currDistID, productTaskOutputInfo), stdout); err != nil {
 				return errors.Wrapf(err, "failed to execute dist script")
 			}
+
+			// TDA: Called from here!
 			// generate dist artifacts
 			if err := currDistParam.Dister.GenerateDistArtifacts(currDistID, productTaskOutputInfo, runDistOutput); err != nil {
 				return err

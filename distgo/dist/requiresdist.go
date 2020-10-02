@@ -15,6 +15,7 @@
 package dist
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -33,6 +34,7 @@ import (
 //   * The product does not define a dist configuration
 //
 // Returns nil if all of the outputs exist and are up-to-date.
+// TDA: This is the function that is responsible for determining whether to run the dist or not!
 func RequiresDist(projectInfo distgo.ProjectInfo, productParam distgo.ProductParam, configModTime *time.Time) (*distgo.ProductParam, error) {
 	if productParam.Dist == nil {
 		return nil, nil
@@ -42,6 +44,7 @@ func RequiresDist(projectInfo distgo.ProjectInfo, productParam distgo.ProductPar
 	distCopy := *productParam.Dist
 	productParam.Dist = &distCopy
 
+	distgo.PrintlnOrDryRunPrintln(os.Stdout, "inside require dist", false)
 	productTaskOutputInfo, err := distgo.ToProductTaskOutputInfo(projectInfo, productParam)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to compute output information for %s", productParam.ID)
@@ -50,8 +53,10 @@ func RequiresDist(projectInfo distgo.ProjectInfo, productParam distgo.ProductPar
 	requiresDistIDs := make(map[distgo.DistID]struct{})
 	for _, currDistID := range productTaskOutputInfo.Product.DistOutputInfos.DistIDs {
 		if !disterRequiresDist(currDistID, productTaskOutputInfo, configModTime) {
+			distgo.PrintlnOrDryRunPrintln(os.Stdout, fmt.Sprintf("No dist required, so skipping (%s)", currDistID), false)
 			continue
 		}
+		distgo.PrintlnOrDryRunPrintln(os.Stdout, fmt.Sprintf("Dist is required! (%s)", currDistID), false)
 		requiresDistIDs[currDistID] = struct{}{}
 	}
 
@@ -75,6 +80,7 @@ func disterRequiresDist(distID distgo.DistID, productTaskOutputInfo distgo.Produ
 	for _, currArtifactPath := range productTaskOutputInfo.ProductDistWorkDirsAndArtifactPaths()[distID] {
 		fi, err := os.Stat(currArtifactPath)
 		if err != nil {
+			distgo.PrintlnOrDryRunPrintln(os.Stdout, "error on stat!", false)
 			return true
 		}
 		if fiModTime := fi.ModTime(); fiModTime.Before(oldestDistTime) {
@@ -84,6 +90,7 @@ func disterRequiresDist(distID distgo.DistID, productTaskOutputInfo distgo.Produ
 
 	// if the newest build artifact is more recent than the oldest dist, consider dist out-of-date
 	if newestBuildArtifactForDist := newestArtifactModTime(buildArtifactPaths(productTaskOutputInfo.Project, productTaskOutputInfo.Product)); newestBuildArtifactForDist != nil && newestBuildArtifactForDist.Truncate(time.Second).After(oldestDistTime.Truncate(time.Second)) {
+		distgo.PrintlnOrDryRunPrintln(os.Stdout, "build is newer than dist, so forcing a dist build!", false)
 		return true
 	}
 
@@ -91,6 +98,7 @@ func disterRequiresDist(distID distgo.DistID, productTaskOutputInfo distgo.Produ
 	// artifact, consider it out-of-date. Truncate times to second granularity for purposes of comparison. If mod time
 	// and artifact generation time are the same, consider out-of-date and run.
 	if configModTime == nil || !configModTime.Truncate(time.Second).Before(oldestDistTime.Truncate(time.Second)) {
+		distgo.PrintlnOrDryRunPrintln(os.Stdout, "Mod change 2", false)
 		return true
 	}
 
@@ -101,6 +109,7 @@ func disterRequiresDist(distID distgo.DistID, productTaskOutputInfo distgo.Produ
 			distArtifactPaths(productTaskOutputInfo.Project, distID, depProductOutputInfo)...,
 		))
 		if newestDependencyTime != nil && newestDependencyTime.After(oldestDistTime) {
+			distgo.PrintlnOrDryRunPrintln(os.Stdout, "dependency after", false)
 			return true
 		}
 	}

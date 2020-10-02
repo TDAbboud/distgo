@@ -66,6 +66,7 @@ func addPublishSubcommands(publisherTypes []string, publishers []distgo.Publishe
 					}
 					flagVals[currFlag.Name] = val
 				}
+				// TDA: Runs dist for all products before being able to publish
 				return publish.Products(projectInfo, projectParam, distgoConfigModTime(), distgo.ToProductDistIDs(args), publisher, flagVals, publishDryRunFlagVal, cmd.OutOrStdout())
 			},
 		}

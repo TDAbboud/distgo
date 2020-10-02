@@ -104,11 +104,13 @@ func (d *assetDister) RunDist(distID distgo.DistID, productTaskOutputInfo distgo
 	return outputBytes, nil
 }
 
+// TDA: It's attempting to run this!
 func (d *assetDister) GenerateDistArtifacts(distID distgo.DistID, productTaskOutputInfo distgo.ProductTaskOutputInfo, runDistResult []byte) error {
 	productTaskOutputInfoJSON, err := json.Marshal(productTaskOutputInfo)
 	if err != nil {
 		return errors.Wrapf(err, "failed to marshal JSON")
 	}
+	// shells out to sls-dister == d.assetPath
 	generateDistArtifactsCmd := exec.Command(d.assetPath, generateDistArtifactsCmdName,
 		"--"+commonCmdConfigYMLFlagName, d.cfgYML,
 		"--"+generateDistArtifactsCmdDistIDFlagName, string(distID),
